@@ -1,7 +1,9 @@
 let svg = {};
+let polygonControl = {};
+let lastPoint = null;
+
 let canvasPoints = [];
 let polygonPoints = [];
-let triangulation = [];
 
 
 import {triangle} from "./Algorithms/triangulation.js";
@@ -14,6 +16,8 @@ import {voronoi} from "./Algorithms/voronoi.js";
 function clear() {
     svg.selectAll("*").remove();
     canvasPoints = [];
+    polygonPoints = [];
+    lastPoint = null;
 }
 
 function drawRandomCircles() {
@@ -26,6 +30,7 @@ function drawRandomCircles() {
     }
 }
 
+
 function drawCircle(center, size) {
     // console.log('Drawing circle at', x, y, size);
     let tooltip = {};
@@ -35,10 +40,18 @@ function drawCircle(center, size) {
         .attr("cy", center.Y)
         .attr("r", size)
         .on('click', function () {
+            d3.event.stopPropagation();
+            if(polygonControl.checked){
+                //polygonPoints.push(circle);
+                if(lastPoint != null){
+                    drawLines([{s: lastPoint, e: circle}]);
+                    lastPoint = circle;
+                }
+                return;
+            }
             tooltip.remove();
             canvasPoints = canvasPoints.filter(c => c.X !== Number(d3.select(this).attr("cx")) || c.Y !== Number(d3.select(this).attr("cy")));
             d3.select(this).remove();
-            d3.event.stopPropagation();
         }).on('mouseenter', function () {
             tooltip = svg.append("text")
                 .attr('x', center.X - 25)
@@ -54,10 +67,20 @@ function drawCircle(center, size) {
     circle.X = Number(circle.attr("cx"));
     circle.Y = Number(circle.attr("cy"));
     canvasPoints.push(circle);
+    if(polygonControl.checked){
+        polygonPoints.push(circle);
+        if(lastPoint != null){
+            drawLines([{s: lastPoint, e: circle}]);
+            lastPoint = circle;
+        }
+        lastPoint = circle;
+    } else {
+        lastPoint = null;
+    }
 }
 
-function drawLines(hullLines, color = "black") {
-    hullLines.forEach(l => {
+function drawLines(lines, color = "black") {
+    lines.forEach(l => {
         svg.append('line')
             .style("stroke", color)
             .attr('x1', l.s.X)
@@ -99,6 +122,9 @@ function drawTriangulation(triangles) {
 
 document.addEventListener("DOMContentLoaded", function () {
     svg = d3.select('svg');
+    polygonControl = document.getElementById("polygon");
+    polygonControl.onclick = () => clear();
+
     canvasPoints = [];
 
 
@@ -136,7 +162,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
     document.getElementById("delTriangle").onclick = () => {
         svg.selectAll("line").remove();
-        triangulation = delaunayTriangulate(canvasPoints);
+        let triangulation = delaunayTriangulate(canvasPoints);
         drawTriangulation(triangulation);
     };
 
@@ -145,10 +171,3 @@ document.addEventListener("DOMContentLoaded", function () {
         drawLines(voronoi(canvasPoints));
     };
 });
-
-function getEdge(x1, y1, x2, y2) {
-    return {
-        s: {X: x1, Y: y1},
-        e: {X: x2, Y: y2}
-    };
-}

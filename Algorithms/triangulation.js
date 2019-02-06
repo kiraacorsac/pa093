@@ -35,6 +35,8 @@ export function triangle(polygon) {
         polygon[i].path = "RIGHT";
     }
 
+    console.log(polygon);
+
     let peek = (s) => s[s.length -1];
     let canAdd = (query, previous, sweepPoint) => {
         let area = crossproduct(sweepPoint, query, previous);
@@ -59,8 +61,8 @@ export function triangle(polygon) {
             triangleLines.push({s:peek(stack), e: sortedPoints[i]});
             let previous = stack.pop();
             while(peek(stack) && canAdd(peek(stack), previous, sortedPoints[i])){
-                previous = stack.pop();
                 triangleLines.push({s:previous, e: sortedPoints[i]});
+                previous = stack.pop();
             }
             stack.push(previous);
             stack.push(sortedPoints[i]);
