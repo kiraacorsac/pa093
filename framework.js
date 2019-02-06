@@ -21,6 +21,7 @@ function clear() {
 }
 
 function drawRandomCircles() {
+    polygonControl.checked = false;
     const count = 15;
 
     for (let i = 0; i < count; i++) {
@@ -138,14 +139,14 @@ document.addEventListener("DOMContentLoaded", function () {
 
     document.getElementById("hull").onclick = () => {
         svg.selectAll("line").remove();
-        let lines = [];
+        let lines;
         [polygonPoints, lines] = giftWrap(canvasPoints);
         drawLines(lines);
     };
 
     document.getElementById("graham").onclick = () => {
         svg.selectAll("line").remove();
-        let lines = [];
+        let lines;
         [polygonPoints, lines] = grahamScan(canvasPoints);
         drawLines(lines);
     };
